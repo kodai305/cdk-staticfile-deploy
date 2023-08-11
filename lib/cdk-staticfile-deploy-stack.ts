@@ -4,9 +4,6 @@ import * as s3_deployment from "aws-cdk-lib/aws-s3-deployment";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
 
 
@@ -21,6 +18,27 @@ export class CdkStaticfileDeployStack extends cdk.Stack {
       bucketName: 'cdk-staticfile-deploy-202307',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
+
+
+    /**
+     * Cloud Front Functions
+     */
+    const viewerRequestFunction = new cloudfront.Function(this, "viewerRequestFunction",
+      {
+        functionName: `viewerRequestFunction`,
+        code: cloudfront.FunctionCode.fromFile({
+          filePath: "./cloudfront_functions/viewer_request_function.js",
+        }),
+      }
+    );
+    const viewerResponseFunction = new cloudfront.Function(this, "viewerResponseFunction",
+      {
+        functionName: `viewerResponseFunction`,
+        code: cloudfront.FunctionCode.fromFile({
+          filePath: "./cloudfront_functions/viewer_response_function.js",
+        }),
+      }
+    );
 
     /**
      * Cloud Front
@@ -41,8 +59,18 @@ export class CdkStaticfileDeployStack extends cdk.Stack {
     const distribution = new cloudfront.Distribution(this, 'DistributionId', {
       defaultRootObject: 'index.html',
       defaultBehavior: {
-          origin: origin,
-      },
+        origin: origin,
+        functionAssociations: [
+          {
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            function: viewerRequestFunction
+          },
+          {
+            eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
+            function: viewerResponseFunction
+          }
+        ]
+    },      
     });
 
     // Policy 

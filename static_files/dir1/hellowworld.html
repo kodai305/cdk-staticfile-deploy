@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello World Example</title>
+    <script>
+        // URLのクエリパラメータを取得する関数
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // ページが読み込まれたときに実行される処理
+        window.onload = function() {
+            const name = getQueryParam('name');
+
+            // クエリパラメータ "name" の値に応じてメッセージを表示
+            const messageElement = document.getElementById('message');
+            if (name) {
+                messageElement.textContent = 'Hello, ' + name + '!';
+            } else {
+                messageElement.textContent = 'Hello, World!';
+            }
+        };
+    </script>
+</head>
+<body>
+    <h1 id="message">Hello, World!</h1>
+    <p>This is a simple example of an HTML page with dynamic content using JavaScript.</p>
+</body>
+</html>
